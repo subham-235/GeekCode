@@ -76,6 +76,7 @@ res.send("Logged out Successfully...")
   }
 };
 
+// admin register
 const adminRegister= async (req,res)=>{
    try {
     validate(req.body);
