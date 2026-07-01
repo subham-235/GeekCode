@@ -13,7 +13,7 @@
  
      const result = await User.findById(_id);
 
-     if(payload.role != 'admin')
+     if(payload.role != 'admin')  //only this line
         throw new Error("Invalid Token..")
      if (!result) throw new Error("User does not exist");
 
