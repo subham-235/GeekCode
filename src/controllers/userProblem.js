@@ -1,36 +1,74 @@
-const {getlanguageById,submitBatch} = require("../utils/problemUtility");
+const { getLanguageById, submitBatch, submitToken } = require("../utils/problemUtility");
+const Problem = require("../models/problem");
+
 const createProblem = async (req, res) => {
-  const {
-    title,
-    description,
-    difficalty,
-    tags,
-    visibleTestCases,
-    hiddenTestCases,
-    startCoad,
-    referenceSolution,
-    problemCreator,
-  } = req.body;
-
   try {
+    const {
+      title,
+      description,
+      difficulty,
+      tags,
+      visibleTestCases,
+      hiddenTestCases,
+      starterCode,
+      referenceSolution,
+    } = req.body;
+
     for (const { language, completeCode } of referenceSolution) {
-      // source code
-      // language id
-      // stdin
-      // expectedOutput
+      const languageId = getLanguageById(language);
 
-      const languageId = getlanguageById(language);
+      if (!languageId) {
+        return res.status(400).json({
+          message: `Unsupported language: ${language}`,
+        });
+      }
 
-      const submission = visibleTestCases.map((input, output) => ({
+      const submissions = visibleTestCases.map((testCase) => ({
         source_code: completeCode,
         language_id: languageId,
-        stdin: input,
-        expected_output: output,
+        stdin: testCase.input,
+        expected_output: testCase.output,
       }));
 
+      const submitResult = await submitBatch(submissions);
 
-      const submitResult=await submitBatch(submission);
+      console.log(submitResult);
+      const resultToken = submitResult.map((result) => result.token);
 
+      console.log(resultToken);
+      const testResult = await submitToken(resultToken);
+
+      for (const test of testResult) {
+        if (test.status_id !== 3) {
+          return res.status(400).json({
+            message: `${language} reference solution failed on visible test cases.`,
+            error: test,
+          });
+        }
+      }
     }
-  } catch {}
+
+    const problem = await Problem.create({
+      title,
+      description,
+      difficulty,
+      tags,
+      visibleTestCases,
+      hiddenTestCases,
+      starterCode,
+      referenceSolution,
+      problemCreator: req.result._id,
+    });
+    res.status(201).json({
+      message: "Problem created successfully.",
+      problem,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to create problem.",
+      error: err.message,
+    });
+  }
 };
+
+module.exports = createProblem;

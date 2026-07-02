@@ -1,42 +1,85 @@
-const axios=require('axios');
+const axios = require('axios');
 
-const getlanguageById=(lang)=>{
-    const language={
-    "c++":54,
-    "java":62,
-    "javascript":63
-    }
+const JUDGE0_URL = "https://ce.judge0.com";
 
-    return language[lang.toLowercase()];
-}
-
-const submitBatch=async (submission)=>{
-const options = {
-  method: 'POST',
-  url: 'https://judge029.p.rapidapi.com/submissions/batch',
-  params: {
-    base64_encoded: 'true'
-  },
-  headers: {
-    'x-rapidapi-key': 'b89bc261d8msh13b49eb8d76f4bcp1e80a8jsn0f7ab1df7d3d',
-    'x-rapidapi-host': 'judge029.p.rapidapi.com',
-    'Content-Type': 'application/json'
-  },
-  data: {submissions}
+const getLanguageById = (lang) => {
+    const language = {
+        "c": 50,
+        "c++": 54,
+        "java": 62,
+        "javascript": 102,
+        "python": 71
+    };
+    return language[lang.toLowerCase()];
 };
 
-async function fetchData() {
-	try {
-		const response = await axios.request(options);
-		return response.data;
-	} catch (error) {
-		console.error(error);
-	}
-}
+const submitBatch = async (submissions) => {
+    const options = {
+        method: 'POST',
+        url: `${JUDGE0_URL}/submissions/batch`,
+        params: { base64_encoded: 'false' },
+        headers: { 'Content-Type': 'application/json' },
+        data: { submissions }
+    };
 
-return await fetchData();
+    try {
+        const response = await axios.request(options);
+        return response.data;
+    } catch (error) {
+        console.error(
+            "Submission Error:",
+            "code:", error.code,
+            "status:", error.response?.status,
+            "data:", error.response?.data,
+            "message:", error.message
+        );
+        throw new Error(error.response?.data?.error || error.message || "Judge0 submitBatch failed");
+    }
+};
 
+const waiting = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-}
+const submitToken = async (resultTokens) => {
+    
+    const tokenString = resultTokens.join(",");
 
-module.exports={getlanguageById,submitBatch};
+    const options = {
+        method: 'GET',
+        url: `${JUDGE0_URL}/submissions/batch`,
+        params: {
+            tokens: tokenString,
+            base64_encoded: 'false',
+            fields: 'stdout,stderr,status_id,status,compile_output'
+        }
+    };
+
+    const MAX_TRIES = 15;
+    for (let i = 0; i < MAX_TRIES; i++) {
+        try {
+            const response = await axios.request(options);
+            const results = response.data.submissions;
+
+            const isFinished = results.every((r) => r.status_id > 2);
+
+            if (isFinished) {
+                return results;
+            }
+
+            console.log("Still processing... waiting 1 second");
+            await waiting(1000);
+        } catch (error) {
+            console.error(
+                "Polling Error:",
+                "code:", error.code,
+                "status:", error.response?.status,
+                "data:", error.response?.data,
+                "message:", error.message
+            );
+            throw new Error(error.response?.data?.error || error.message || "Judge0 polling failed");
+        }
+    }
+
+    throw new Error("Judge0 polling timed out after 15 attempts");
+};
+
+module.exports = { getLanguageById, submitBatch, submitToken };
