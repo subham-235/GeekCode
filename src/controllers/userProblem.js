@@ -4,6 +4,7 @@ const {
   submitToken,
 } = require("../utils/problemUtility");
 const Problem = require("../models/problem");
+const User=require("../models/user");
 
 const createProblem = async (req, res) => {
   try {
@@ -36,10 +37,10 @@ const createProblem = async (req, res) => {
 
       const submitResult = await submitBatch(submissions);
 
-      console.log(submitResult);
+     
       const resultToken = submitResult.map((result) => result.token);
 
-      console.log(resultToken);
+     
       const testResult = await submitToken(resultToken);
 
       for (const test of testResult) {
@@ -200,10 +201,26 @@ const getAllProblem = async (req, res) => {
   }
 };
 
+const getAllSolvedProblem=async (req,res)=>{
+try{
+
+  const userId1=req.result._id;
+  const user1=await User.findById(userId1).populate({path:
+    'problemSolved',
+    select:"_id title difficulty tags"
+  });
+
+  res.status(200).send(user1.problemSolved);
+}catch(err){
+  res.status(500).send("Server Error...")
+}
+};
+
 module.exports = {
   createProblem,
   updateProblem,
   deleteProblem,
   getProblemById,
   getAllProblem,
+  getAllSolvedProblem
 };

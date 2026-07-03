@@ -4,11 +4,9 @@ const JUDGE0_URL = "https://ce.judge0.com";
 
 const getLanguageById = (lang) => {
     const language = {
-        "c": 50,
-        "c++": 54,
+        "cpp": 54,
         "java": 62,
         "javascript": 102,
-        "python": 71
     };
     return language[lang.toLowerCase()];
 };
