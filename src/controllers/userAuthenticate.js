@@ -22,9 +22,17 @@ const register = async (req, res) => {
       process.env.JWT_KEY,
       { expiresIn: 60 * 60 }
     );
+      const reply={
+      firstName:user.firstName,
+      emailId:user.emailId,
+      _id:user._id
+    }
 
     res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
-    res.status(201).send("User Registered Successfully...");
+    res.status(201).json({
+      user:reply,
+      massage:"Registered Successfully..."
+    });
   } catch (err) {
     res.status(400).send("Error : " + err.message);
   }
@@ -51,8 +59,16 @@ const login = async (req, res) => {
       { expiresIn: 60 * 60 }
     );
 
+    const reply={
+      firstName:user.firstName,
+      emailId:user.emailId,
+      _id:user._id
+    }
     res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
-    res.status(200).send("Login Successfully....");
+    res.status(201).json({
+      user:reply,
+      massage:"Login Successfully..."
+    });
   } catch (err) {
     res.status(401).send("Error : " + err.message);
   }
