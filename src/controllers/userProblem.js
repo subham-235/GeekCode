@@ -220,17 +220,17 @@ try{
 const submittedproblem=async (req,res)=>{
   try{
 
-    const userId=req.reasult._id;
+    const userId=req.result._id;
     const problemId=req.params.pid;
 
     const ans=await Submission.find({userId,problemId});
-    if(ans.length==0){
-      res.status(200).send("No Submission");
+    if(ans.length===0){
+      return res.status(200).send("No Submission");
     }
-    res.status(200).send(ans)
+    return res.status(200).send(ans)
 
   }catch(err){
-  res.status(500).send("Internal Server Error!!!");
+  return res.status(500).send("Internal Server Error!!!");
   }
 }
 
