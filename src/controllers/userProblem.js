@@ -4,7 +4,7 @@ const {
   submitToken,
 } = require("../utils/problemUtility");
 const Problem = require("../models/problem");
-const User=require("../models/user");
+const User = require("../models/user");
 const Submission = require("../models/submission");
 
 const createProblem = async (req, res) => {
@@ -37,11 +37,7 @@ const createProblem = async (req, res) => {
       }));
 
       const submitResult = await submitBatch(submissions);
-
-     
       const resultToken = submitResult.map((result) => result.token);
-
-     
       const testResult = await submitToken(resultToken);
 
       for (const test of testResult) {
@@ -160,7 +156,7 @@ const deleteProblem = async (req, res) => {
     const deletedProblem = await Problem.findByIdAndDelete(id);
 
     if (!deletedProblem) {
-      res.status(404).send("Problem not Available...");
+      return res.status(404).send("Problem not Available...");
     }
     res.status(200).send("deletedProblem");
   } catch (err) {
@@ -181,7 +177,7 @@ const getProblemById = async (req, res) => {
     );
 
     if (!getProblem) {
-      res.status(404).send("Problem not Available...");
+      return res.status(404).send("Problem not Available...");
     }
     res.status(200).send(getProblem);
   } catch (err) {
@@ -191,10 +187,10 @@ const getProblemById = async (req, res) => {
 
 const getAllProblem = async (req, res) => {
   try {
-    const getProblem = await Problem.find({}).select('_id title tags');
+    const getProblem = await Problem.find({}).select('_id title difficulty tags');
 
     if (getProblem.length == 0) {
-      res.status(404).send("Problem not Available...");
+      return res.status(404).send("Problem not Available...");
     }
     res.status(200).send(getProblem);
   } catch (err) {
@@ -202,35 +198,33 @@ const getAllProblem = async (req, res) => {
   }
 };
 
-const getAllSolvedProblem=async (req,res)=>{
-try{
+const getAllSolvedProblem = async (req, res) => {
+  try {
+    const userId1 = req.result._id;
+    const user1 = await User.findById(userId1).populate({
+      path: 'problemSolved',
+      select: "_id title difficulty tags"
+    });
 
-  const userId1=req.result._id;
-  const user1=await User.findById(userId1).populate({path:
-    'problemSolved',
-    select:"_id title difficulty tags"
-  });
-
-  res.status(200).send(user1.problemSolved);
-}catch(err){
-  res.status(500).send("Server Error...")
-}
+    res.status(200).send(user1.problemSolved);
+  } catch (err) {
+    res.status(500).send("Server Error...")
+  }
 };
 
-const submittedproblem=async (req,res)=>{
-  try{
+const submittedproblem = async (req, res) => {
+  try {
+    const userId = req.result._id;
+    const problemId = req.params.pid;
 
-    const userId=req.result._id;
-    const problemId=req.params.pid;
-
-    const ans=await Submission.find({userId,problemId});
-    if(ans.length===0){
+    const ans = await Submission.find({ userId, problemId });
+    if (ans.length === 0) {
       return res.status(200).send("No Submission");
     }
     return res.status(200).send(ans)
 
-  }catch(err){
-  return res.status(500).send("Internal Server Error!!!");
+  } catch (err) {
+    return res.status(500).send("Internal Server Error!!!");
   }
 }
 
