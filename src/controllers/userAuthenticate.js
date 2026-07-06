@@ -25,7 +25,8 @@ const register = async (req, res) => {
       const reply={
       firstName:user.firstName,
       emailId:user.emailId,
-      _id:user._id
+      _id:user._id,
+       role:user.role
     }
 
     res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
@@ -62,7 +63,8 @@ const login = async (req, res) => {
     const reply={
       firstName:user.firstName,
       emailId:user.emailId,
-      _id:user._id
+      _id:user._id,
+       role:user.role
     }
     res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
     res.status(201).json({

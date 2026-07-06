@@ -11,20 +11,18 @@ const submitCode = async (req, res) => {
     const userId = req.result._id;
     const problemId = req.params.id;
 
-    const { code, language } = req.body;
+  let { code, language } = req.body;
 
     if (!userId || !problemId || !code || !language) {
       return res.status(400).send("Some field missing");
     }
 
-    // Fetch the problem
     const problem = await Problem.findById(problemId);
 
     if (!problem) {
       return res.status(404).send("Problem not found");
     }
 
-    // Store submission first
     const submittedResult = await Submission.create({
       userId,
       problemId,
@@ -34,7 +32,6 @@ const submitCode = async (req, res) => {
       status: "pending",
     });
 
-    // Submit to Judge0
     const languageId = getLanguageById(language);
 
     if (!languageId) {
@@ -49,12 +46,9 @@ const submitCode = async (req, res) => {
     }));
 
     const submitResult = await submitBatch(submissions);
-
     const resultTokens = submitResult.map((result) => result.token);
-
     const testResults = await submitToken(resultTokens);
 
-    // Process Judge0 results
     let testCasesPassed = 0;
     let runtime = 0;
     let memory = 0;
@@ -78,13 +72,10 @@ const submitCode = async (req, res) => {
             test.stdout ||
             "Wrong Answer";
         }
-
-        // Stop after first failed testcase
         break;
       }
     }
 
-    // Update submission
     submittedResult.status = status;
     submittedResult.testCasesPassed = testCasesPassed;
     submittedResult.errorMessage = errorMessage;
@@ -93,14 +84,20 @@ const submitCode = async (req, res) => {
 
     await submittedResult.save();
 
-    // Problem ID Ke insert
-
-    if(!req.result.problemSolved.includes(problemId)){
-       req.result.problemSolved.push(problemId);
-       await req.result.save(); 
+    if (!req.result.problemSolved.includes(problemId)) {
+      req.result.problemSolved.push(problemId);
+      await req.result.save();
     }
 
-    return res.status(201).json(submittedResult);
+    // Reshape response to match what the frontend expects
+    return res.status(201).json({
+      accepted: status === "accepted",
+      passedTestCases: testCasesPassed,
+      totalTestCases: problem.hiddenTestCases.length,
+      runtime,
+      memory,
+      error: status !== "accepted" ? errorMessage : null,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).send("Internal Server Error");
@@ -108,8 +105,8 @@ const submitCode = async (req, res) => {
 };
 
 
-const runCode=async (req,res)=>{
-   try {
+const runCode = async (req, res) => {
+  try {
     const userId = req.result._id;
     const problemId = req.params.id;
 
@@ -119,16 +116,12 @@ const runCode=async (req,res)=>{
       return res.status(400).send("Some field missing");
     }
 
-    // Fetch the problem
     const problem = await Problem.findById(problemId);
 
     if (!problem) {
       return res.status(404).send("Problem not found");
     }
 
-  
-
-    // Submit to Judge0
     const languageId = getLanguageById(language);
 
     if (!languageId) {
@@ -143,17 +136,39 @@ const runCode=async (req,res)=>{
     }));
 
     const submitResult = await submitBatch(submissions);
-
     const resultTokens = submitResult.map((result) => result.token);
-
     const testResults = await submitToken(resultTokens);
 
-    return res.status(201).json(testResults);
+    // Determine overall success and compute aggregate stats
+    let allPassed = true;
+    let runtime = 0;
+    let memory = 0;
+
+    const mappedTestCases = testResults.map((test, index) => {
+      const passed = test.status.id === 3;
+      if (!passed) allPassed = false;
+      runtime += parseFloat(test.time || 0);
+      memory = Math.max(memory, Number(test.memory || 0));
+
+      return {
+        stdin: problem.visibleTestCases[index].input,
+        expected_output: problem.visibleTestCases[index].output,
+        stdout: test.stdout,
+        status_id: test.status.id,
+      };
+    });
+
+    return res.status(201).json({
+      success: allPassed,
+      runtime,
+      memory,
+      testCases: mappedTestCases,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).send("Internal Server Error");
   }
-}
+};
 
 
-module.exports = {submitCode,runCode}; 
+module.exports = { submitCode, runCode };

@@ -11,7 +11,7 @@ problemRouter.delete('/delete/:id',adminMiddleware,deleteProblem);
 
 
 // user level api
-problemRouter.get('/problembyid/:id',userMiddleware,getProblemById);
+problemRouter.get('/problemById/:id',userMiddleware,getProblemById);
 problemRouter.get('/getallproblem',userMiddleware,getAllProblem);
 problemRouter.get('/problemsolvedbyuser',userMiddleware,getAllSolvedProblem);
 problemRouter.get('/submittedproblem/:pid',userMiddleware,submittedproblem);
