@@ -20,7 +20,7 @@ authRouter.post('/admin/register',adminMiddleware,adminRegister);
 authRouter.delete('/delete',userMiddleware,deleteProfile);
 
 // Check-Auth
-authRouter.get('/check',userMiddleware,async (req,res)=>{
+authRouter.get('/check',userMiddleware, async (req,res)=>{
     const reply={
       firstName:req.result.firstName,
       emailId:req.result.emailId,
