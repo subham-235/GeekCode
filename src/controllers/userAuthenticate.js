@@ -4,6 +4,7 @@ const validate = require("../utils/validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Submission=require('../models/submission');
+const sendWelcomeEmail  = require("../services/email.service");
 
 // Register
 const register = async (req, res) => {
@@ -28,6 +29,7 @@ const register = async (req, res) => {
       _id:user._id,
        role:user.role
     }
+    await sendWelcomeEmail(user.emailId, user.firstName);
 
     res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
     res.status(201).json({
