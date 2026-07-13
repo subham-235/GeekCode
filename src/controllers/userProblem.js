@@ -6,6 +6,7 @@ const {
 const Problem = require("../models/problem");
 const User = require("../models/user");
 const Submission = require("../models/submission");
+const SolutionVideo = require("../models/solutionVideo");
 
 const createProblem = async (req, res) => {
   try {
@@ -179,6 +180,16 @@ const getProblemById = async (req, res) => {
     if (!getProblem) {
       return res.status(404).send("Problem not Available...");
     }
+
+    const videos = await SolutionVideo.find({ problemId: id });
+    if (videos) {
+      getProblem.secureUrl = secureUrl;
+      getProblem.cloudinaryPublicId = cloudinaryPublicId;
+      getProblem.thumbnailUrl = thumbnailUrl;
+      getProblem.duration = duration;
+
+      return res.status(200).send(getProblem);
+    }
     res.status(200).send(getProblem);
   } catch (err) {
     res.status(404).send("Error : " + err);
@@ -187,7 +198,9 @@ const getProblemById = async (req, res) => {
 
 const getAllProblem = async (req, res) => {
   try {
-    const getProblem = await Problem.find({}).select('_id title difficulty tags');
+    const getProblem = await Problem.find({}).select(
+      "_id title difficulty tags",
+    );
 
     if (getProblem.length == 0) {
       return res.status(404).send("Problem not Available...");
@@ -202,13 +215,13 @@ const getAllSolvedProblem = async (req, res) => {
   try {
     const userId1 = req.result._id;
     const user1 = await User.findById(userId1).populate({
-      path: 'problemSolved',
-      select: "_id title difficulty tags"
+      path: "problemSolved",
+      select: "_id title difficulty tags",
     });
 
     res.status(200).send(user1.problemSolved);
   } catch (err) {
-    res.status(500).send("Server Error...")
+    res.status(500).send("Server Error...");
   }
 };
 
@@ -221,12 +234,11 @@ const submittedproblem = async (req, res) => {
     if (ans.length === 0) {
       return res.status(200).send("No Submission");
     }
-    return res.status(200).send(ans)
-
+    return res.status(200).send(ans);
   } catch (err) {
     return res.status(500).send("Internal Server Error!!!");
   }
-}
+};
 
 module.exports = {
   createProblem,
@@ -235,5 +247,5 @@ module.exports = {
   getProblemById,
   getAllProblem,
   getAllSolvedProblem,
-  submittedproblem
+  submittedproblem,
 };

@@ -10,7 +10,9 @@ const submitRouter=require('./routes/submit');
 const redisClient = require("./config/redis");
 const authGoogle=require('./routes/authRoutes');
 const cors=require('cors');
-const aiRouter = require("./routes/aiChatting")
+const aiRouter = require("./routes/aiChatting");
+const videoRouter = require("./routes/videoCreator");
+
 // const passport = require("passport");
 // require("./config/passport")
 
@@ -26,6 +28,7 @@ app.use("/user",authRouter);
 app.use("/problem",problemRouter);
 app.use("/submission",submitRouter);
 app.use('/ai',aiRouter);
+app.use("/video",videoRouter);
 // app.use("/auth",authGoogle);
 
 
