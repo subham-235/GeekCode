@@ -13,7 +13,7 @@ const sendWelcomeEmail = async (email, name) => {
     const info = await transporter.sendMail({
       from: `"Your Website" <${process.env.EMAIL}>`,
       to: email,
-      subject: "🎉 Welcome to Our Website!",
+      subject: "🎉 Welcome to GeekCode",
       html: welcomeEmailTemplate(name),
     });
 
