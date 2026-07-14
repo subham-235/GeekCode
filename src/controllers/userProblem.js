@@ -181,16 +181,19 @@ const getProblemById = async (req, res) => {
       return res.status(404).send("Problem not Available...");
     }
 
-    const videos = await SolutionVideo.find({ problemId: id });
-    if (videos) {
-      getProblem.secureUrl = secureUrl;
-      getProblem.cloudinaryPublicId = cloudinaryPublicId;
-      getProblem.thumbnailUrl = thumbnailUrl;
-      getProblem.duration = duration;
+    const videos = await SolutionVideo.findOne({ problemId: id });
 
-      return res.status(200).send(getProblem);
+    // Convert to a plain JS object so ad-hoc fields actually get sent
+    const responseProblem = getProblem.toObject();
+
+    if (videos) {
+      responseProblem.secureUrl = videos.secureUrl;
+      responseProblem.cloudinaryPublicId = videos.cloudinaryPublicId;
+      responseProblem.thumbnailUrl = videos.thumbnailUrl;
+      responseProblem.duration = videos.duration;
     }
-    res.status(200).send(getProblem);
+
+    return res.status(200).send(responseProblem);
   } catch (err) {
     res.status(404).send("Error : " + err);
   }
@@ -232,7 +235,7 @@ const submittedproblem = async (req, res) => {
 
     const ans = await Submission.find({ userId, problemId });
     if (ans.length === 0) {
-      return res.status(200).send("No Submission");
+      res.status(200).json({ submissions: allSubmissions });
     }
     return res.status(200).send(ans);
   } catch (err) {
