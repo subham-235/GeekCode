@@ -13,8 +13,8 @@ const cors=require('cors');
 const aiRouter = require("./routes/aiChatting");
 const videoRouter = require("./routes/videoCreator");
 
-// const passport = require("passport");
-// require("./config/passport")
+const passport = require("passport");
+require("./config/passport")
 
 
 app.use(cors({
@@ -29,7 +29,7 @@ app.use("/problem",problemRouter);
 app.use("/submission",submitRouter);
 app.use('/ai',aiRouter);
 app.use("/video",videoRouter);
-// app.use("/auth",authGoogle);
+app.use("/auth",authGoogle);
 
 
 const InitializeConnection=async ()=>{
