@@ -11,7 +11,7 @@ const submitCode = async (req, res) => {
     const userId = req.result._id;
     const problemId = req.params.id;
 
-  let { code, language } = req.body;
+    let { code, language } = req.body;
 
     if (!userId || !problemId || !code || !language) {
       return res.status(400).send("Some field missing");
@@ -23,8 +23,15 @@ const submitCode = async (req, res) => {
       return res.status(404).send("Problem not found");
     }
 
+    // TODO: if this user was authenticated via Google OAuth, set this to
+    // 'Googleuser' instead. Adjust the condition below once you know how
+    // req.result distinguishes Google-authenticated users (e.g. req.result.googleId,
+    // or a separate flag set by your Google auth middleware).
+    const userModel = req.result.googleId ? 'Googleuser' : 'User';
+
     const submittedResult = await Submission.create({
       userId,
+      userModel,
       problemId,
       code,
       language,
@@ -104,7 +111,6 @@ const submitCode = async (req, res) => {
   }
 };
 
-
 const runCode = async (req, res) => {
   try {
     const userId = req.result._id;
@@ -169,6 +175,5 @@ const runCode = async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 };
-
 
 module.exports = { submitCode, runCode };
