@@ -18,9 +18,9 @@ require("./config/passport")
 
 
 app.use(cors({
-  origin:'https://geek-code-frontend-new.vercel.app/',
-  credentials:true
-}))
+  origin: "https://geek-code-frontend-new.vercel.app",
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 
