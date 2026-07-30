@@ -28,6 +28,11 @@ const submitCode = async (req, res) => {
     // req.result distinguishes Google-authenticated users (e.g. req.result.googleId,
     // or a separate flag set by your Google auth middleware).
     const userModel = req.result.googleId ? 'Googleuser' : 'User';
+     const languageId = getLanguageById(language);
+
+    if (!languageId) {
+      return res.status(400).send("Unsupported language");
+    }
 
     const submittedResult = await Submission.create({
       userId,
@@ -39,11 +44,7 @@ const submitCode = async (req, res) => {
       status: "pending",
     });
 
-    const languageId = getLanguageById(language);
-
-    if (!languageId) {
-      return res.status(400).send("Unsupported language");
-    }
+   
 
     const submissions = problem.hiddenTestCases.map((testCase) => ({
       source_code: code,
