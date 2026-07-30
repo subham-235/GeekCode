@@ -18,7 +18,7 @@ require("./config/passport")
 
 
 app.use(cors({
-  origin:'http://localhost:5173',
+  origin:'https://geek-code-frontend-new.vercel.app/',
   credentials:true
 }))
 app.use(express.json());
