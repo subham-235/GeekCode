@@ -31,7 +31,12 @@ const register = async (req, res) => {
     }
     await sendWelcomeEmail(user.emailId, user.firstName);
 
-    res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
+    res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    maxAge: 60 * 60 * 1000
+});
     res.status(201).json({
       user:reply,
       massage:"Registered Successfully..."
@@ -68,7 +73,12 @@ const login = async (req, res) => {
       _id:user._id,
        role:user.role
     }
-    res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
+   res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    maxAge: 60 * 60 * 1000
+});
     res.status(201).json({
       user:reply,
       massage:"Login Successfully..."
@@ -90,7 +100,11 @@ const payload=jwt.decode(token);
 await redisClient.set(`token:${token}`,'Blocked');
 await redisClient.expireAt(`token:${token}`,payload.exp);
 
-res.cookie("token",null,{expires:new Date(Date.now())});
+res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+});
 res.send("Logged out Successfully...")
   } catch (err) {
     res.status(503).send("Error : " + err.message);
@@ -115,7 +129,12 @@ const adminRegister= async (req,res)=>{
       { expiresIn: 60 * 60 }
     );
 
-    res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
+    res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    maxAge: 60 * 60 * 1000
+});
     res.status(201).send("User Registered Successfully...");
   } catch (err) {
     res.status(400).send("Error : " + err.message);

@@ -16,7 +16,7 @@ const videoRouter = require("./routes/videoCreator");
 const passport = require("passport");
 require("./config/passport")
 
-
+app.set("trust proxy", 1);
 app.use(cors({
   origin: "https://geek-code-frontend-new.vercel.app",
   credentials: true
